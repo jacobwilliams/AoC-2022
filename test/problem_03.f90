@@ -19,14 +19,11 @@ do i = 1, n_lines
     first  = line(1:n)
     second = line(n+1:)
 
-    !write(*,*) first, ' ', second
-
     ! find common one:
     found = .false.
     main: do j = 1, n
         do k = 1, n
             if (first(j:j) == second(k:k)) then
-                write(*,*) index(items,first(j:j))
                 priorities = priorities + index(items,first(j:j))
                 found = .true.
                 exit main
