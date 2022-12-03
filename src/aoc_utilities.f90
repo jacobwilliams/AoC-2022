@@ -18,7 +18,7 @@ module aoc_utilities
     public :: number_of_lines_in_file
     public :: sort_ascending,sort_ascending_64
     public :: split
-    public :: read_line_from_file
+    public :: read_line
     public :: unique
 
 contains
@@ -461,13 +461,13 @@ contains
 !>
 !  Reads the next line from a file.
 
-    subroutine read_line_from_file(iunit,line,status_ok)
+    function read_line(iunit,status_ok) result(line)
 
     implicit none
 
     integer,intent(in) :: iunit
-    character(len=:),allocatable,intent(out) :: line
-    logical,intent(out) :: status_ok !! true if no problems
+    character(len=:),allocatable :: line
+    logical,intent(out),optional :: status_ok !! true if no problems
 
     integer :: nread  !! character count specifier for read statement
     integer :: istat  !! file read io status flag
@@ -476,7 +476,7 @@ contains
     nread  = 0
     buffer = ''
     line   = ''
-    status_ok = .true.
+    if (present(status_ok)) status_ok = .true.
 
     do
         ! read in the next block of text from the line:
@@ -488,13 +488,16 @@ contains
         else if (istat==0) then ! all the characters were read
             line = line//buffer  ! add this block of text to the string
         else  ! some kind of error
-            error stop 'Read error'
-            status_ok = .false.
-            exit
+            if (present(status_ok)) then
+                status_ok = .false.
+                exit
+            else
+                error stop 'Read error'
+            end if
         end if
     end do
 
-    end subroutine read_line_from_file
+    end function read_line
 !*****************************************************************************************
 
 !*****************************************************************************************
