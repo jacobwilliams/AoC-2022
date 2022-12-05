@@ -17,14 +17,23 @@ module aoc_utilities
     public :: read_file_to_integer_array, read_file_to_integer64_array
     public :: number_of_lines_in_file
     public :: sort_ascending,sort_ascending_64
-    public :: split
     public :: read_line
     public :: unique
+
+    interface split
+        procedure :: split1, split2
+    end interface split
+    public :: split
+
+    interface int
+        procedure :: string_to_int
+    end interface int
+    public :: int
 
 contains
 
 !****************************************************************
-    function string_to_int(me) result(i)
+    pure elemental function string_to_int(me) result(i)
     !! basic string to integer routine
     implicit none
     class(string),intent(in) :: me
@@ -303,6 +312,25 @@ contains
     end subroutine swap64
 !*******************************************************************************
 
+!*******************************************************************************
+
+    pure function split2(s,token) result(vals)
+
+    implicit none
+
+    type(string),intent(in)  :: s
+    character(len=*),intent(in)  :: token
+    type(string),dimension(:),allocatable:: vals
+
+    if (allocated(s%str)) then
+        vals = split1(s%str,token)
+    else
+        error stop 'error: string not allocated'
+    end if
+
+    end function split2
+!*******************************************************************************
+
 !*****************************************************************************************
 !>
 !  Split a character string using a token.
@@ -316,13 +344,13 @@ contains
 !   call split(s,',',vals)
 !````
 
-    pure subroutine split(str,token,vals)
+    pure function split1(str,token) result(vals)
 
     implicit none
 
     character(len=*),intent(in)  :: str
     character(len=*),intent(in)  :: token
-    type(string),dimension(:),allocatable,intent(out) :: vals
+    type(string),dimension(:),allocatable :: vals
 
     integer :: i          !! counter
     integer :: len_str    !! significant length of `str`
@@ -406,7 +434,7 @@ contains
         vals(1)%str = str
     end if
 
-    end subroutine split
+    end function split1
 !*****************************************************************************************
 
 !*****************************************************************************************
