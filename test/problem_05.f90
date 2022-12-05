@@ -38,7 +38,7 @@ program problem_5
 
     do i = 1, n_lines
 
-        ! get star/end of each pair as integers:
+        ! get start/end of each pair as integers:
         line = read_line(iunit)    ! move 1 from 2 to 1
         if (index(line, 'move')>0) then
             vals = split(line,' ')
@@ -49,7 +49,7 @@ program problem_5
             ! part a:
             do j = 1, num_to_move
                 n_from = len(stacks(move_from)%str)
-                stacks(move_to)%str   = stacks(move_to)%str // stacks(move_from)%str(n_from:n_from)
+                stacks(move_to)%str = stacks(move_to)%str // stacks(move_from)%str(n_from:n_from)
                 stacks(move_from)%str = stacks(move_from)%str(1:n_from-1)
             end do
 
