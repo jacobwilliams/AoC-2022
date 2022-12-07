@@ -34,4 +34,4 @@ jobs:
            --slave /usr/bin/gcov gcov /usr/bin/gcov-${{ matrix.gcc_v }}
 
     - name: Run test
-      run: fpm test problem_05
+      run: fpm test

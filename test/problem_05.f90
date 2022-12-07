@@ -42,9 +42,7 @@ program problem_5
         ! get start/end of each pair as integers:
         line = read_line(iunit)    ! move 1 from 2 to 1
         if (index(line, 'move')>0) then
-            write(*,*) '-->'//line//'<--'
             vals = split(line,' ')
-
             num_to_move = int(vals(2))
             move_from = int(vals(4))
             move_to = int(vals(6))
