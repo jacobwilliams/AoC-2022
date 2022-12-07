@@ -9,7 +9,8 @@ program problem_5
 
     integer :: i, j, n, iunit, n_lines, num_to_move, move_from, move_to, n_from
     character(len=:),allocatable :: line
-    type(string),dimension(n_stacks) :: stacks, stacks2, vals
+    type(string),dimension(n_stacks) :: stacks, stacks2
+    type(string),dimension(:),allocatable :: vals
 
     !     [M]             [Z]     [V]
     !     [Z]     [P]     [L]     [Z] [J]
