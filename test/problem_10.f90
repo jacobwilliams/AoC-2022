@@ -5,7 +5,7 @@ program problem_10
 
     implicit none
 
-    integer :: i, j, iunit, n_lines, x, icycle, signal_strength, signal_strength_sum
+    integer :: i, iunit, n_lines, x, icycle, signal_strength, signal_strength_sum
     character(len=:),allocatable :: line
     type(string),dimension(:),allocatable :: vals
     character(len=1),dimension(6,0:39) :: crt
@@ -17,29 +17,21 @@ program problem_10
 
     signal_strength_sum = 0
     icycle = 0 ! first cycle start
-    x = 1 ! start
+    x = 1
     irow = 1
     crt = '.'
     ipixel = 0
     do i = 1, n_lines
         line = read_line(iunit)
         vals = split(line,' ')
-
         select case (vals(1)%str)
         case ('noop')
-            icycle = icycle + 1 ! start of cycle
-            call check()
             call update()
         case ('addx')
-            icycle = icycle + 1 ! start of cycle
-            call check()
             call update()
-            icycle = icycle + 1 ! start of cycle
-            call check()
             call update()
             x = x + int(vals(2))
         end select
-
     end do
     close(iunit)
 
@@ -52,14 +44,14 @@ program problem_10
 
     contains
 
-    subroutine check() ! for part a
+    subroutine update()
+        icycle = icycle + 1 ! start of cycle
+        ! for part a
         if (any(icycle==[20, 60, 100, 140, 180, 220])) then
             signal_strength = icycle * x
             signal_strength_sum = signal_strength_sum + signal_strength
         end if
-    end subroutine check
-
-    subroutine update() ! for part b
+        ! for part b
         if (any(ipixel==[x-1,x,x+1])) crt(irow,ipixel) = '#'
         ipixel = ipixel + 1
         if (ipixel>39) then
