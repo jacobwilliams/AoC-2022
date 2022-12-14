@@ -13,7 +13,7 @@ program problem_12
         integer,dimension(2) :: ij = -1
     end type pair
 
-    integer :: iunit, n_rows, n_cols
+    integer :: iunit, n_rows, n_cols, min_res, res
     integer :: i, j, n_steps
     character(len=:),allocatable :: line
     integer,dimension(:,:),allocatable :: map
@@ -23,8 +23,6 @@ program problem_12
     integer,dimension(2) :: iloc
     integer,dimension(2) :: istart, iend ! row, col of start and end points
     character(len=1),dimension(:),allocatable :: c
-
-    character(len=1),dimension(2),parameter :: ab = ['a', 'b']
 
     open(newunit=iunit,file='inputs/day12.txt', status='OLD')
     n_rows = number_of_lines_in_file(iunit)
@@ -53,29 +51,50 @@ program problem_12
         end do
     end do
 
-    dist = huge(1)
-    visited = .false.
-    dist(istart(1),istart(2)) = 0
+    call go(); write(*,*) '12a: ', dist(iend(1), iend(2))
 
-    do
-
-        iloc = minloc(dist, mask=.not. visited)
-        i = iloc(1)
-        j = iloc(2)
-        visited(i,j) = .true.
-
-        call check([i,j], [i+1,j])
-        call check([i,j], [i,j+1])
-        call check([i,j], [i-1,j])
-        call check([i,j], [i,j-1])
-
-        if (all(visited)) exit ! done
-
+    ! call for all the 'a' cells:
+    min_res = huge(1)
+    map(istart(1), istart(2)) = iachar('a')
+    do i = 1, n_rows
+        do j = 1, n_cols
+            if (map(i,j)==iachar('a')) then
+                istart = [i,j] ! new starting point
+                call go()
+                res = dist(iend(1), iend(2))
+                if (res>0 .and. res < min_res) min_res = res
+            end if
+        end do
     end do
-
-    write(*,*) '12a: ', dist(iend(1), iend(2))
+    write(*,*) '12b: ', min_res
 
     contains
+
+    subroutine go()
+
+        integer :: i,j
+
+        dist = huge(1)
+        visited = .false.
+        dist(istart(1),istart(2)) = 0
+
+        do
+
+            iloc = minloc(dist, mask=.not. visited)
+            i = iloc(1)
+            j = iloc(2)
+            visited(i,j) = .true.
+
+            call check([i,j], [i+1,j])
+            call check([i,j], [i,j+1])
+            call check([i,j], [i-1,j])
+            call check([i,j], [i,j-1])
+
+            if (all(visited)) exit ! done
+
+        end do
+
+    end subroutine go
 
     subroutine check(u, v)
         implicit none
