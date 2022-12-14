@@ -14,69 +14,62 @@ program problem_12
     end type pair
 
     integer :: iunit, n_rows, n_cols
-    integer(ip) :: i, j
+    integer :: i, j, n_steps
     character(len=:),allocatable :: line
-    integer(ip),dimension(:,:),allocatable :: map
+    integer,dimension(:,:),allocatable :: map
     logical,dimension(:,:),allocatable :: visited
-    integer(ip),dimension(:,:),allocatable :: dist
+    integer,dimension(:,:),allocatable :: dist
     type(pair),dimension(:,:),allocatable :: prev
     integer,dimension(2) :: iloc
-    integer :: icase
-    integer(ip),dimension(2) :: istart, iend ! row, col of start and end points
+    integer,dimension(2) :: istart, iend ! row, col of start and end points
     character(len=1),dimension(:),allocatable :: c
-    integer(ip) :: n_steps,iprev,jprev
 
-    integer,parameter :: n_cases = 1
     character(len=1),dimension(2),parameter :: ab = ['a', 'b']
 
-    do icase = 1, n_cases
-
-        open(newunit=iunit,file='inputs/day12.txt', status='OLD')
-        n_rows = number_of_lines_in_file(iunit)
-        n_steps = 0
-        do i = 1, n_rows
-            line = read_line(iunit)
-            if (i==1) then
-                n_cols = len(line)
-                if (allocated(map))     deallocate(map); allocate(map(n_rows,n_cols))
-                if (allocated(visited)) deallocate(visited); allocate(visited(n_rows,n_cols))
-                if (allocated(dist))    deallocate(dist); allocate(dist(n_rows,n_cols))
-                if (allocated(prev))    deallocate(prev); allocate(prev(n_rows,n_cols))
-                if (allocated(c))       deallocate(c); allocate(c(n_cols))
+    open(newunit=iunit,file='inputs/day12.txt', status='OLD')
+    n_rows = number_of_lines_in_file(iunit)
+    n_steps = 0
+    do i = 1, n_rows
+        line = read_line(iunit)
+        if (i==1) then
+            n_cols = len(line)
+            if (allocated(map))     deallocate(map); allocate(map(n_rows,n_cols))
+            if (allocated(visited)) deallocate(visited); allocate(visited(n_rows,n_cols))
+            if (allocated(dist))    deallocate(dist); allocate(dist(n_rows,n_cols))
+            if (allocated(prev))    deallocate(prev); allocate(prev(n_rows,n_cols))
+            if (allocated(c))       deallocate(c); allocate(c(n_cols))
+        end if
+        read(line,'(*(A1))') c
+        map(i,1:n_cols) = iachar(c)
+        ! look for beginning/end:
+        do j = 1, n_cols
+            if (c(j)=='S') then
+                istart = [i,j]
+                map(i,j) = iachar('a') - 1
+            else if (c(j)=='E') then
+                iend = [i,j]
+                map(i,j) = iachar('z') + 1
             end if
-            read(line,'(*(A1))') c
-            map(i,1:n_cols) = iachar(c)
-            ! look for beginning/end:
-            do j = 1, n_cols
-                if (c(j)=='S') then
-                    istart = [i,j]
-                    map(i,j) = iachar('a') - 1
-                else if (c(j)=='E') then
-                    iend = [i,j]
-                    map(i,j) = iachar('z') + 1
-                end if
-            end do
         end do
+    end do
 
-        dist = huge(1)
-        visited = .false.
-        dist(istart(1),istart(2)) = 0
+    dist = huge(1)
+    visited = .false.
+    dist(istart(1),istart(2)) = 0
 
-        do
+    do
 
-            iloc = minloc(dist, mask=.not. visited)
-            i = iloc(1)
-            j = iloc(2)
-            visited(i,j) = .true.
+        iloc = minloc(dist, mask=.not. visited)
+        i = iloc(1)
+        j = iloc(2)
+        visited(i,j) = .true.
 
-            call check([i,j], [i+1,j])
-            call check([i,j], [i,j+1])
-            call check([i,j], [i-1,j])
-            call check([i,j], [i,j-1])
+        call check([i,j], [i+1,j])
+        call check([i,j], [i,j+1])
+        call check([i,j], [i-1,j])
+        call check([i,j], [i,j-1])
 
-            if (all(visited)) exit ! done
-
-        end do
+        if (all(visited)) exit ! done
 
     end do
 
@@ -86,9 +79,9 @@ program problem_12
 
     subroutine check(u, v)
         implicit none
-        integer(ip),dimension(2),intent(in) :: u ! current
-        integer(ip),dimension(2),intent(in) :: v ! neighbor
-        integer(ip) :: alt, delt
+        integer,dimension(2),intent(in) :: u ! current
+        integer,dimension(2),intent(in) :: v ! neighbor
+        integer :: alt, delt
 
         if (v(1)<1 .or. v(2)<1 .or. v(1)>n_rows .or. v(2)>n_cols) return
         if (visited(v(1),v(2))) return ! already visited this one
