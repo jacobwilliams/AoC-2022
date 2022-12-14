@@ -6,6 +6,9 @@ description = "Advent of Code 2022 with Fortran"
 homepage = "https://github.com/jacobwilliams/AoC-2022"
 keywords = ["AOC"]
 
+[dependencies]
+json-fortran = { git="https://github.com/jacobwilliams/json-fortran.git", tag = "8.3.0" }
+
 [build]
 auto-executables = true
 auto-examples = true
