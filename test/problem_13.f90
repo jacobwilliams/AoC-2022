@@ -6,17 +6,11 @@ program problem_13
 
     implicit none
 
-    integer :: i, j, n_elements, ipair, s
+    integer :: i, j, n_elements, ipair, s, correct
     type(json_core) :: json
     type(json_value),pointer :: p, p_left, p_right
-    integer :: correct
     logical :: sorted
     integer,dimension(:),allocatable :: indices
-
-    character(len=*),dimension(-1:1),parameter :: result = ['UNKNOWN****',&
-                                                            'right order',&
-                                                            'wrong order']
-
 
     call parse(add_dividers = .false.)
     ! now, process each pair:
@@ -53,6 +47,7 @@ program problem_13
     end do
     ! indices of the two divider packets:
     write(*,*) '13b: ', findloc(indices,1) * findloc(indices,2)
+    call json%destroy(p)
 
     contains
 
@@ -82,6 +77,9 @@ program problem_13
     end subroutine parse
 
     recursive subroutine compare(p_left, p_right, correct, init)
+
+        ! we have to stop comparing as soon as correct /= -1.
+        ! this was not clear to me in the problem description.
 
         type(json_value),pointer :: p_left, p_right
         integer,intent(inout) :: correct !! -1: unknown, 0: right order, 1: wrong order
@@ -142,16 +140,16 @@ program problem_13
             call json%get(p_right, i)
             call json%create_array(p_int, '')
             call json%add(p_int, '', i)
-            p_right_tmp => p_int
-            call compare(p_left, p_right_tmp, correct)
+            call compare(p_left, p_int, correct)
+            call json%destroy(p_int)
 
         else if (type_left==json_integer .and. type_right==json_array) then
 
             call json%get(p_left, i)
             call json%create_array(p_int, '')
             call json%add(p_int, '', i)
-            p_left_tmp => p_int
-            call compare(p_left_tmp, p_right, correct)
+            call compare(p_int, p_right, correct)
+            call json%destroy(p_int)
 
         end if
 
