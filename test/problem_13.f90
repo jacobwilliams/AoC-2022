@@ -6,31 +6,19 @@ program problem_13
 
     implicit none
 
-    integer :: i, j, iunit, n_rows, n_elements, ipair, s
-    character(len=:),allocatable :: line, str
+    integer :: i, j, n_elements, ipair, s
     type(json_core) :: json
     type(json_value),pointer :: p, p_left, p_right
     integer :: correct
+    logical :: sorted
+    integer,dimension(:),allocatable :: indices
 
     character(len=*),dimension(-1:1),parameter :: result = ['UNKNOWN****',&
                                                             'right order',&
                                                             'wrong order']
-    ! convert to json for parsing:
-    open(newunit=iunit,file='inputs/day13.txt', status='OLD')
-    n_rows = number_of_lines_in_file(iunit)
-    str = '['
-    do i = 1, n_rows
-        line = read_line(iunit)
-        if (line=='') cycle
-        str = str // line
-        if (i<n_rows) str = str // ','
-    end do
-    str = str // ']'
-    close(iunit)
-    call json%deserialize(p, str)
-    call json%initialize(no_whitespace=.true.)
-    !call json%print(p)
 
+
+    call parse(add_dividers = .false.)
     ! now, process each pair:
     call json%info(p, n_children = n_elements)
     ipair = 0
@@ -39,23 +27,73 @@ program problem_13
         ipair = ipair + 1
         call json%get_child(p, i,   p_left)
         call json%get_child(p, i+1, p_right)
-        correct = -1 ! not yet known
-        call compare(p_left, p_right, correct)
-        !write(*,'(A,1x,i3,A,A)') 'Result for pair', ipair, ' : ', result(correct)
+        call compare(p_left, p_right, correct, init = .true.)
         if (correct == 0) s = s + ipair
     end do
-
     write(*,*) '13a: ', s
+    call json%destroy(p)
+
+    call parse(add_dividers = .true.)
+    call json%info(p, n_children = n_elements)
+    ! bubble sort that baby:
+    allocate(indices(n_elements)); indices = [(i, i = 1, n_elements)]
+    do
+        sorted = .true.
+        do i = 1, n_elements-1
+            call json%get_child(p, i,   p_left)
+            call json%get_child(p, i+1, p_right)
+            call compare(p_left, p_right, correct, init = .true.)
+            if (correct==1) then
+                call json%swap(p_left,p_right)
+                call swap(indices(i), indices(i+1))
+                sorted = .false.
+            end if
+        end do
+        if (sorted) exit
+    end do
+    ! indices of the two divider packets:
+    write(*,*) '13b: ', findloc(indices,1) * findloc(indices,2)
 
     contains
 
-    recursive subroutine compare(p_left, p_right, correct)
+    subroutine parse(add_dividers)
+
+        logical,intent(in) :: add_dividers
+
+        integer :: i, iunit, n_rows, n
+        character(len=:),allocatable :: line, str
+
+        ! convert to json for parsing:
+        open(newunit=iunit,file='inputs/day13.txt', status='OLD')
+        n_rows = number_of_lines_in_file(iunit)
+        str = '['
+        if (add_dividers) str = str // '[[2]], [[6]],' ! add the extra packets
+        do i = 1, n_rows
+            line = read_line(iunit)
+            if (line=='') cycle
+            str = str // line
+            if (i<n_rows) str = str // ','
+        end do
+        str = str // ']'
+        close(iunit)
+        call json%deserialize(p, str)
+        call json%initialize(no_whitespace=.true.)
+
+    end subroutine parse
+
+    recursive subroutine compare(p_left, p_right, correct, init)
 
         type(json_value),pointer :: p_left, p_right
         integer,intent(inout) :: correct !! -1: unknown, 0: right order, 1: wrong order
+        logical,intent(in),optional :: init !! if true, being called for first time
 
         integer :: i, type_left, type_right, i_left, i_right, n_children_right, n_children_left
         type(json_value),pointer :: p_left_tmp, p_right_tmp, p_int
+
+        ! first call:
+        if (present(init)) then
+            if (init) correct = -1
+        end if
 
         if (correct==1 .or. correct==0) return ! done
 
@@ -64,16 +102,8 @@ program problem_13
 
         if (type_left==json_integer .and. type_right==json_integer) then
 
-            ! If both values are integers, the lower integer should come first.
-            ! If the left integer is lower than the right integer, the inputs
-            ! are in the right order. If the left integer is higher than the
-            ! right integer, the inputs are not in the right order. Otherwise,
-            ! the inputs are the same integer; continue checking the next part
-            ! of the input.
-
             call json%get(p_left, i_left)
             call json%get(p_right,i_right)
-
             if (i_left==i_right) then
                 ! continue
             else if (i_left < i_right) then
@@ -83,14 +113,6 @@ program problem_13
             end if
 
         else if (type_right==json_array .and. type_left==json_array) then
-
-            ! If both values are lists, compare the first value of each list,
-            ! then the second value, and so on. If the left list runs out of
-            ! items first, the inputs are in the right order. If the right
-            ! list runs out of items first, the inputs are not in the right
-            ! order. If the lists are the same length and no comparison makes
-            ! a decision about the order, continue checking the next part
-            ! of the input.
 
             if (n_children_left>0 .or. n_children_right>0) then
                 do i = 1, max(n_children_left,n_children_right)
@@ -117,16 +139,10 @@ program problem_13
 
         else if (type_left==json_array .and. type_right==json_integer) then
 
-            ! If exactly one value is an integer, convert the integer to a list
-            ! which contains that integer as its only value, then retry the
-            ! comparison. For example, if comparing [0,0,0] and 2, convert the
-            ! right value to [2] (a list containing 2); the result is then found
-            ! by instead comparing [0,0,0] and [2].
-
             call json%get(p_right, i)
             call json%create_array(p_int, '')
             call json%add(p_int, '', i)
-            call json%replace(p_right, p_int); p_right_tmp => p_int
+            p_right_tmp => p_int
             call compare(p_left, p_right_tmp, correct)
 
         else if (type_left==json_integer .and. type_right==json_array) then
@@ -134,7 +150,7 @@ program problem_13
             call json%get(p_left, i)
             call json%create_array(p_int, '')
             call json%add(p_int, '', i)
-            call json%replace(p_left, p_int); p_left_tmp => p_int
+            p_left_tmp => p_int
             call compare(p_left_tmp, p_right, correct)
 
         end if

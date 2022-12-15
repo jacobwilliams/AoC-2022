@@ -30,6 +30,8 @@ module aoc_utilities
     end interface int
     public :: int
 
+    public :: swap
+
 contains
 
 !****************************************************************
