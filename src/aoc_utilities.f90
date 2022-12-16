@@ -18,7 +18,6 @@ module aoc_utilities
     public :: number_of_lines_in_file
     public :: sort_ascending,sort_ascending_64
     public :: read_line
-    public :: unique
 
     interface split
         procedure :: split1, split2
@@ -26,9 +25,14 @@ module aoc_utilities
     public :: split
 
     interface int
-        procedure :: string_to_int
+        procedure :: string_to_int, char_to_int
     end interface int
     public :: int
+
+     interface unique
+        procedure :: unique32, unique64
+    end interface unique
+    public :: unique
 
     public :: swap
 
@@ -42,6 +46,13 @@ contains
     integer :: i
     read(me%str,*) i
     end function string_to_int
+    pure elemental function char_to_int(str) result(i)
+    !! basic string to integer routine
+    implicit none
+    character(len=*),intent(in) :: str
+    integer :: i
+    read(str,*) i
+    end function char_to_int
 
 !****************************************************************
     function read_file_to_integer_array(filename) result(iarray)
@@ -531,7 +542,7 @@ contains
 !*****************************************************************************************
 
 !*****************************************************************************************
-function unique(vec) result(vec_unique)
+function unique32(vec) result(vec_unique)
 ! Return only the unique values from vec.
 
 implicit none
@@ -567,7 +578,47 @@ vec_unique = pack( vec, mask )
 ! For example, with slatec routine:
 !call ISORT (vec_unique, [0], size(vec_unique), 1)
 
-end function unique
+end function unique32
+!*****************************************************************************************
+
+!*****************************************************************************************
+function unique64(vec) result(vec_unique)
+! Return only the unique values from vec.
+
+implicit none
+
+integer(int64),dimension(:),intent(in) :: vec
+integer(int64),dimension(:),allocatable :: vec_unique
+
+integer(int64) :: i,num
+logical,dimension(size(vec)) :: mask
+
+mask = .false.
+
+do i=1,size(vec)
+
+    !count the number of occurrences of this element:
+    num = count( vec(i)==vec )
+
+    if (num==1) then
+        !there is only one, flag it:
+        mask(i) = .true.
+    else
+        !flag this value only if it hasn't already been flagged:
+        if (.not. any(vec(i)==vec .and. mask) ) mask(i) = .true.
+    end if
+
+end do
+
+!return only flagged elements:
+allocate( vec_unique(count(mask)) )
+vec_unique = pack( vec, mask )
+
+!if you also need it sorted, then do so.
+! For example, with slatec routine:
+!call ISORT (vec_unique, [0], size(vec_unique), 1)
+
+end function unique64
 !*****************************************************************************************
 
 end module aoc_utilities
