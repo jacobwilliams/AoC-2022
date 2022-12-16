@@ -16,7 +16,6 @@ program problem_15
    !integer,parameter :: ytarg = 10 ! for test data
     integer(ip),parameter :: ytarg = 2000000
 
-    ! convert to json for parsing:
     open(newunit=iunit,file='inputs/day15.txt', status='OLD')
     n_rows = number_of_lines_in_file(iunit)
     allocate(sx(n_rows))
@@ -34,6 +33,10 @@ program problem_15
         v = split(vals(10),'='); by(i) = int(v(2))
     end do
 
+    ! ... this assumes the exclusion region on the row is continuous
+    !     (minus the known beacons). this is not necessarily true, but
+    !     seems to work for part a
+
     minx = huge(1)
     maxx = -huge(1)
     do i = 1, n_rows
@@ -46,12 +49,5 @@ program problem_15
     end do
     ! exclude the beacons on this row:
     write(*,*) '15a: ', 1 + maxx - minx - size(unique(pack(bx, mask=by==ytarg)))
-
-    contains
-
-    pure integer(ip) function manhattan(sx,sy,bx,by)
-    integer(ip),intent(in) :: sx,sy,bx,by
-    manhattan = abs(sx - bx) + abs(sy - by)
-    end function Manhattan
 
 end program problem_15
