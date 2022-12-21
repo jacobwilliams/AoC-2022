@@ -8,6 +8,7 @@ keywords = ["AOC"]
 
 [dependencies]
 json-fortran = { git="https://github.com/jacobwilliams/json-fortran.git", tag = "8.3.0" }
+daglib = { git="https://github.com/jacobwilliams/daglib" }
 
 [build]
 auto-executables = true
