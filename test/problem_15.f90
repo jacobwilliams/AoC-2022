@@ -56,7 +56,7 @@ program problem_15
     ! row               3231000   80.7750015     %
     ! 15b:        13172087230812
 
-    stop !!!!!
+    return !!!!!
 
     call compute_board_bounds(xmin, xmax, ymin, ymax)
     xmin = max(0,xmin)    ! reduced search space
