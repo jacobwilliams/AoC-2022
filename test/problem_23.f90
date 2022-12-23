@@ -20,8 +20,7 @@ program problem_23
     call go(10)
     write(*,*) '23a: ', iempty
 
-    ! comment this out for the CI since it is a bit slow !!
-    !call go(huge(1))
+    call go(huge(1))
 
     contains
 
@@ -46,24 +45,17 @@ program problem_23
             ! Simultaneously, each Elf moves to their proposed destination tile
             ! if they were the only Elf to propose moving to that position.
             if (count(proposed_x==proposed_x(j) .and. proposed_y==proposed_y(j) .and. .not. stuck)==1) then
-                !write(*,*) 'move elf ', j, ' : ', x(j), y(j), ' -> ', proposed_x(j), proposed_y(j)
                 x(j) = proposed_x(j)
                 y(j) = proposed_y(j)
             end if
         end do
         proposals = [proposals(2:4), proposals(1)] ! permute for next round
-
         if (all(x==prev_x) .and. all(y==prev_y)) then
             write(*,*) '23b: ', i
             stop
         end if
-
         prev_x = x
         prev_y = y
-
-        ! write(*,*) ''
-        ! write(*,*) 'round ', i
-        ! call print_grid()
     end do
 
     ! bounding rectangle:
@@ -71,7 +63,6 @@ program problem_23
     xmax = maxval(x)
     ymin = minval(y)
     ymax = maxval(y)
-   ! write(*,*) 'xmin, xmax, ymin, ymax = ', xmin, xmax, ymin, ymax
     ! count empty cells:
     iempty = 0
     do ix = xmin, xmax
@@ -96,7 +87,6 @@ program problem_23
             do ix = xmin, xmax
                 if (any(ix==x .and. iy==y)) line(ix) = '#'
             end do
-            !write(*,'(*(A1))') line
         end do
     end subroutine print_grid
 
@@ -124,10 +114,7 @@ program problem_23
                                   x==x(i)-1 .and. y==y(i)-1, &
                                   x==x(i)   .and. y==y(i)+1, &
                                   x==x(i)   .and. y==y(i)-1  ])
-            if (stuck(i)) then
-               ! write(*,*) 'elf ', i, ' stuck'
-                cycle
-            end if
+            if (stuck(i)) cycle
 
             ! otherwise, go through the proposals:
             found = .false.
