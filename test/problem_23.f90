@@ -20,7 +20,8 @@ program problem_23
     call go(10)
     write(*,*) '23a: ', iempty
 
-    call go(huge(1))
+    ! comment this out for the CI since it is a bit slow !!
+    !call go(huge(1))
 
     contains
 
