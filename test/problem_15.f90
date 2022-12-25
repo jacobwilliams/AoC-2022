@@ -56,67 +56,69 @@ program problem_15
     ! row               3231000   80.7750015     %
     ! 15b:        13172087230812
 
-    return !!!!!
+    if (.false.) then
 
-    call compute_board_bounds(xmin, xmax, ymin, ymax)
-    xmin = max(0,xmin)    ! reduced search space
-    xmax = min(maxb,xmax)
+        call compute_board_bounds(xmin, xmax, ymin, ymax)
+        xmin = max(0,xmin)    ! reduced search space
+        xmax = min(maxb,xmax)
 
-    ! will hold [min,max] for each sensor on each row
-    allocate(minmax_all(1:n_rows,2))
-    allocate(irow(xmin:xmax)) ! for each row to check
+        ! will hold [min,max] for each sensor on each row
+        allocate(minmax_all(1:n_rows,2))
+        allocate(irow(xmin:xmax)) ! for each row to check
 
-    ! row loop:
-    main : do i = min(maxb,ymax),0,-1 ! loop backwards
-        minmax_all = compute_minmax_for_all_sensors_on_row(i)
+        ! row loop:
+        main : do i = min(maxb,ymax),0,-1 ! loop backwards
+            minmax_all = compute_minmax_for_all_sensors_on_row(i)
 
-        if (mod(i,1000)==0) write(*,*) 'row ',i, 100.0*i/min(maxb,ymax),'%'
+            if (mod(i,1000)==0) write(*,*) 'row ',i, 100.0*i/min(maxb,ymax),'%'
 
-        ! the excluded ones will be set to false,
-        ! if any remains true, that is the answer
-        irow = .true.
+            ! the excluded ones will be set to false,
+            ! if any remains true, that is the answer
+            irow = .true.
 
-        do j = 1, n_rows
+            do j = 1, n_rows
 
-            associate (low => minmax_all(j,1), high => minmax_all(j,2))
-                !    xmin     xmax
-                !     *--------*
-                ! [ ]
-                !                 []
-                !  [     ]
-                !             [     ]
-                !       [   ]
-                if (low<xmin .and. high<xmin) then
-                    cycle
-                else if (low>xmax .and. high>xmax) then
-                    cycle
-                else if (low<xmin .and. high<xmax) then
-                    irow(:high) = .false.
-                else if (low<xmax .and. high>xmax) then
-                    irow(low:) = .false.
-                else
-                    irow(low:high) = .false.
-                end if
-            end associate
+                associate (low => minmax_all(j,1), high => minmax_all(j,2))
+                    !    xmin     xmax
+                    !     *--------*
+                    ! [ ]
+                    !                 []
+                    !  [     ]
+                    !             [     ]
+                    !       [   ]
+                    if (low<xmin .and. high<xmin) then
+                        cycle
+                    else if (low>xmax .and. high>xmax) then
+                        cycle
+                    else if (low<xmin .and. high<xmax) then
+                        irow(:high) = .false.
+                    else if (low<xmax .and. high>xmax) then
+                        irow(low:) = .false.
+                    else
+                        irow(low:high) = .false.
+                    end if
+                end associate
 
-        end do
-        if (any(irow)) then
-            ! exclude known beacons
-            do j = 1, size(bx)
-                if (by(j)==i) then
-                    if (bx(j)>=xmin .and. bx(j)<=xmax) irow(bx(j)) = .false.
-                end if
             end do
             if (any(irow)) then
-                do j = lbound(irow,dim=1), ubound(irow,dim=1)
-                    if (irow(j)) then
-                        write(*,*) '15b: ', 4000000_ip*j + i
-                        exit main
+                ! exclude known beacons
+                do j = 1, size(bx)
+                    if (by(j)==i) then
+                        if (bx(j)>=xmin .and. bx(j)<=xmax) irow(bx(j)) = .false.
                     end if
                 end do
+                if (any(irow)) then
+                    do j = lbound(irow,dim=1), ubound(irow,dim=1)
+                        if (irow(j)) then
+                            write(*,*) '15b: ', 4000000_ip*j + i
+                            exit main
+                        end if
+                    end do
+                end if
             end if
-        end if
-    end do main
+        end do main
+
+    end if
 
     contains
 
