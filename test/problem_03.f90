@@ -6,7 +6,7 @@ use aoc_utilities
 implicit none
 
 integer :: i, j, iunit, priorities, n_lines, n
-character(len=:),allocatable :: line, line1, line2, line3
+character(len=:),allocatable :: line, line1, line2, line3, first, second
 character(len=1) :: c
 character(len=52),parameter :: items='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -16,7 +16,8 @@ n_lines = number_of_lines_in_file(iunit)
 do i = 1, n_lines
     line = read_line(iunit)
     n = len(line)/2
-    associate (first => line(1:n), second => line(n+1:))
+   ! associate (first => line(1:n), second => line(n+1:)) ! compiler bug in ifort
+        first = line(1:n); second = line(n+1:)            ! just do this
         do j = 1, n
             c = first(j:j) ! check this character
             if (index(second,c)>0)  then
@@ -24,7 +25,7 @@ do i = 1, n_lines
                 exit
             end if
         end do
-    end associate
+   ! end associate
 end do
 close(iunit)
 write(*,*) '3a: ', priorities
