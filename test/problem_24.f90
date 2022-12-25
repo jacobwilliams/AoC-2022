@@ -31,7 +31,7 @@ program problem_24
     ix_in = [xy_start(1)]
     iy_in = [xy_start(2)]
 
-    do
+    do ! BFS
         call advance(imove,ix_in,iy_in,iwait_in,ix_out,iy_out,iwait_out)
         ix_in = ix_out
         iy_in = iy_out

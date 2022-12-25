@@ -37,7 +37,7 @@ program problem_24b
     iend_visited_in = [0]
     istart_visited_in = [1]
 
-    do
+    do ! BFS
         call advance(imove,ix_in,iy_in,iwait_in,istart_visited_in,iend_visited_in,&
                             ix_out,iy_out,iwait_out,istart_visited_out,iend_visited_out)
         ix_in = ix_out
