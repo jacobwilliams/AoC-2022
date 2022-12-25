@@ -11,7 +11,7 @@ program problem_24
     integer,dimension(:),allocatable :: y
     integer,dimension(:),allocatable :: dx    ! step for blizzard in each turn
     integer,dimension(:),allocatable :: dy
-    integer :: wx     ! blizzard area width (value to mod for wrapping
+    integer :: wx     ! blizzard area width (value to mod for wrapping)
     integer :: wy     ! blizzard area height
     integer :: max_wait_time ! max time to wait before the blizzard configuration is the same
     integer,dimension(2) :: xy_start, xy_end
@@ -22,8 +22,6 @@ program problem_24
     integer,dimension(:),allocatable :: ix_out
     integer,dimension(:),allocatable :: iy_out
     integer :: imove, i, n
-    integer,dimension(:),allocatable :: idx
-    integer,dimension(:),allocatable :: d
 
     call read_file()
     !call print_grid(x,y)
@@ -61,21 +59,19 @@ program problem_24
 
         integer :: i, j, m
         integer,dimension(4) :: d   ! n,s,w,e distances to endpoint
-        integer,dimension(4) :: idx ! for sorting d
 
         ! output arrays:
         allocate(ix_out(0))
         allocate(iy_out(0))
         allocate(iwait_out(0))
 
+        ! next move:
         imove = imove + 1
         call update_blizzards(x,y)
 
         ! process each input (BFS):
         do j = 1, size(ix_in)
-
             associate (ix => ix_in(j), iy => iy_in(j), iwait => iwait_in(j))
-
                 ! compute each option to move:
                 if (ix==xy_start(1) .and. iy==xy_start(2)) then
                     ! if at the start point, only two options: wait or go s
@@ -83,48 +79,26 @@ program problem_24
                     if (free_spot(x,y,ix,iy+1)) d(2) = dist(ix,iy+1,xy_end(1),xy_end(2)) ! s
                     if (d(2)/=-huge(1)) call add(ix,iy+1,0,ix_out,iy_out,iwait_out) ! acceptable move
                 else
-
                     ! are we done?
-                    if (ix==xy_end(1) .and. iy==xy_end(2)-1) then ! a solution!
+                    if (ix==xy_end(1) .and. iy==xy_end(2)-1) then
                         ix_out    = [ix]  ! solution - return it
                         iy_out    = [iy+1]
                         iwait_out = [0]
-                        return !
+                        return
                     end if
-
                     ! get valid modes in grid.
-                    ! try them based on distance from the end (shortest first)
-                    d = -huge(1) ! will indicate a non-free spot
-                    if (free_spot(x,y,ix,iy-1)) d(1) = dist(ix,iy-1,xy_end(1),xy_end(2)) ! n
-                    if (free_spot(x,y,ix,iy+1)) d(2) = dist(ix,iy+1,xy_end(1),xy_end(2)) ! s
-                    if (free_spot(x,y,ix-1,iy)) d(3) = dist(ix-1,iy,xy_end(1),xy_end(2)) ! w
-                    if (free_spot(x,y,ix+1,iy)) d(4) = dist(ix+1,iy,xy_end(1),xy_end(2)) ! e
-                    if (any(d/=-huge(1))) then
-                        call rank(d,idx)
-                        do i = 1, 4
-                            if (d(idx(i))/=-huge(1)) then ! acceptable move
-                                select case (idx(i))
-                                case(1); call add(ix,iy-1,0,ix_out,iy_out,iwait_out) ! n
-                                case(2); call add(ix,iy+1,0,ix_out,iy_out,iwait_out) ! s
-                                case(3); call add(ix-1,iy,0,ix_out,iy_out,iwait_out) ! w
-                                case(4); call add(ix+1,iy,0,ix_out,iy_out,iwait_out) ! e
-                                end select
-                            end if
-                        end do
-                    end if
-
+                    if (free_spot(x,y,ix,iy-1)) call add(ix,iy-1,0,ix_out,iy_out,iwait_out) ! n
+                    if (free_spot(x,y,ix,iy+1)) call add(ix,iy+1,0,ix_out,iy_out,iwait_out) ! s
+                    if (free_spot(x,y,ix-1,iy)) call add(ix-1,iy,0,ix_out,iy_out,iwait_out) ! w
+                    if (free_spot(x,y,ix+1,iy)) call add(ix+1,iy,0,ix_out,iy_out,iwait_out) ! e
                 end if
-
                 ! finally, we have the option to wait, if there is no blizzard here at this time
-                !if (.not. any(ix==x .and. iy==y)) then
                 if (iwait < max_wait_time) then ! only if we haven't waited the max time
                     if ((ix==xy_start(1) .and. iy==xy_start(2)) .or. free_spot(x,y,ix,iy)) then
                         call add(ix,iy,iwait+1,ix_out,iy_out,iwait_out) ! wait at this spot
                     end if
                 end if
-
             end associate
-
         end do
 
     end subroutine advance
@@ -144,31 +118,12 @@ program problem_24
         end if
     end subroutine add
 
-    subroutine rank(v,idx)
-        integer,dimension(:),intent(in) :: v
-        integer,dimension(:),intent(out) :: idx ! indices to sort v in ascending order
-        integer :: i
-        logical :: sorted
-        ! bubble sort baby!
-        idx = [(i, i=1,size(v))]
-        do
-            sorted = .true.
-            do i = 1, size(v)-1
-                if (v(idx(i+1)) < v(idx(i))) then
-                    call swap(idx(i+1), idx(i))
-                    sorted = .false.
-                end if
-            end do
-            if (sorted) exit
-        end do
-    end subroutine rank
-
     logical function free_spot(x,y,ix,iy)
-    integer,dimension(:),intent(in) :: x
-    integer,dimension(:),intent(in) :: y
-    integer,intent(in) :: ix,iy
-    free_spot = iy>=0 .and. iy<=wy-1 .and. ix>=0 .and. ix<=wx-1
-    if (free_spot) free_spot = .not. any(ix==x .and. iy==y) ! no blizzard
+        integer,dimension(:),intent(in) :: x
+        integer,dimension(:),intent(in) :: y
+        integer,intent(in) :: ix,iy
+        free_spot = iy>=0 .and. iy<=wy-1 .and. ix>=0 .and. ix<=wx-1
+        if (free_spot) free_spot = .not. any(ix==x .and. iy==y) ! no blizzard
     end function free_spot
 
     pure integer function dist(x1,y1,x2,y2) ! Manhattan distance
