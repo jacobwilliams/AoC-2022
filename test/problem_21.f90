@@ -60,8 +60,8 @@ program problem_21
     end do
     close(iunit)
     ! create a dag for visualization and toposort:
-    call d%save_digraph('monkeys.dot','RL',300)
-    call execute_command_line('dot -Tpdf -o monkeys.pdf monkeys.dot')
+    call d%save_digraph('21.dot','RL',300)
+    call execute_command_line('dot -Tpdf -o 21.pdf 21.dot')
     call d%toposort(order,istat)
     call d%destroy()
 

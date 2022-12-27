@@ -84,9 +84,9 @@ program problem_16
     close(iunit)
 
     ! create a dag for visualization:
-    call d%save_digraph('test.dot','RL',300)
+    call d%save_digraph('16.dot','RL',300)
     call d%destroy()
-    call execute_command_line('dot -Tpdf -o test.pdf test.dot')
+    call execute_command_line('dot -Tpdf -o 16.pdf 16.dot')
 
     ! now traverse valves with BFS, starting at istart (AA):
     iset = [istart]
